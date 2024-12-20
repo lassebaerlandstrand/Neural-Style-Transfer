@@ -1,10 +1,8 @@
-import torch
+from src.utils import load_image
 
 def main():
     print("Hello from neural-style-transfer!")
-
-    print(torch.__version__)
-    print(torch.cuda.is_available())
+    image = load_image("data/content.jpg")
 
 if __name__ == "__main__":
     main()
