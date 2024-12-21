@@ -55,7 +55,7 @@ def style_transfer(
     content: torch.Tensor, 
     style: torch.Tensor, 
     content_weight=1, 
-    style_weight=1e6,
+    style_weight=1e8,
     steps=100
     ) -> torch.Tensor:
 
@@ -90,12 +90,13 @@ def style_transfer(
 
     return generated_image
 
+from utils import load_image_as_tensor
+from utils import save_image
+
 if __name__ == "__main__":
-    from utils import load_image_as_tensor
-    content_image = load_image_as_tensor("data/content/landscape.jpg")
-    style_image = load_image_as_tensor("data/styles/Van_Gogh.jpg")
+    content_image = load_image_as_tensor("data/content/bird.jpg")
+    style_image = load_image_as_tensor("data/styles/hexagon-gradient.jpg")
 
     generated_image = style_transfer(content_image, style_image)
 
-    from utils import save_image
-    save_image(generated_image, "data/generated/landscape_van_gogh.jpg")
+    save_image(generated_image, "data/generated/bird-hexagon.jpg")
