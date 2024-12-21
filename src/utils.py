@@ -14,7 +14,7 @@ transform = transforms.Compose([
 def _get_relative_path(path: str) -> str:
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), path)
 
-def load_image(path: str) -> torch.Tensor:
+def load_image_as_tensor(path: str) -> torch.Tensor:
     relative_path = _get_relative_path(path)
     image = Image.open(relative_path)
     image = transform(image).unsqueeze(0)
