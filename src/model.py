@@ -1,10 +1,15 @@
 import torch
 from torchvision.models import vgg19, VGG19_Weights
+import time
 
 # Use VGG19 with default pretrained weights
 vgg = vgg19(weights=VGG19_Weights.DEFAULT).features
 for param in vgg.parameters():
     param.requires_grad = False
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+vgg = vgg.to(device)
+print(torch.cuda.is_available())
 
 # Uses VGG19 to extract features from an image
 # Lower layers captures low-level features (edges, textures)
@@ -53,10 +58,12 @@ def style_loss(style_grams, generated_grams):
 
 def style_transfer(
     content: torch.Tensor, 
-    style: torch.Tensor, 
+    style: torch.Tensor,
+    learning_rate=0.015,
     content_weight=1, 
-    style_weight=1e8,
-    steps=100
+    style_weight=1e9,
+    steps=200,
+    device=torch.device("cpu")
     ) -> torch.Tensor:
 
     # Extract features
@@ -67,26 +74,38 @@ def style_transfer(
     style_grams = {layer: gram_matrix(style_features[layer]) for layer in style_features}
     
     # Initialize the generated image (start with content image)
-    generated_image = content.clone().requires_grad_(True)
+    generated_image = content.clone().requires_grad_(True).to(device)
     
     # Optimizer
-    optimizer = torch.optim.Adam([generated_image], lr=0.003)
+    optimizer = torch.optim.Adam([generated_image], lr=learning_rate)
     
     # Training loop
     for step in range(steps):
+        start = time.time()
         generated_features = get_features(generated_image, vgg)
+
+        print(f"Step {step}, Time: {time.time() - start}")
+
         c_loss = content_loss(content_features['conv4_1'], generated_features['conv4_1'])
+
+        print(f"Step {step}, Time: {time.time() - start}")
         g_grams = {layer: gram_matrix(generated_features[layer]) for layer in style_features}
+
+        print(f"Step {step}, Time: {time.time() - start}")
         s_loss = style_loss(style_grams, g_grams)
+
+        print(f"Step {step}, Time: {time.time() - start}")
         
         total_loss = content_weight * c_loss + style_weight * s_loss
         
         optimizer.zero_grad()
         total_loss.backward()
         optimizer.step()
+
+        print(f"Step {step}, Time: {time.time() - start}")
         
-        if step % 2 == 0:
-            print(f"Step {step}, Total Loss: {total_loss.item()}")
+        if step % 1 == 0:
+            print(f"Step {step}, Total Loss: {total_loss.item()}\n")
 
     return generated_image
 
@@ -94,9 +113,15 @@ from utils import load_image_as_tensor
 from utils import save_image
 
 if __name__ == "__main__":
-    content_image = load_image_as_tensor("data/content/bird.jpg")
-    style_image = load_image_as_tensor("data/styles/hexagon-gradient.jpg")
+    content_image = load_image_as_tensor("data/content/bird.jpg", device)
+    style_image = load_image_as_tensor("data/styles/hexagon-gradient.jpg", device)
 
-    generated_image = style_transfer(content_image, style_image)
+    generated_image = style_transfer(
+        content=content_image, 
+        style=style_image,
+        steps=100,
+        device=device
+    )
 
     save_image(generated_image, "data/generated/bird-hexagon.jpg")
+    print("\nImage saved!")

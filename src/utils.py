@@ -7,18 +7,19 @@ import os
 IMAGE_SIZE = 512
 
 transform = transforms.Compose([
-    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+    transforms.Resize(IMAGE_SIZE),
+    transforms.CenterCrop((IMAGE_SIZE, IMAGE_SIZE)),
     transforms.ToTensor(),
 ])
 
 def _get_relative_path(path: str) -> str:
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), path)
 
-def load_image_as_tensor(path: str) -> torch.Tensor:
+def load_image_as_tensor(path: str, device: torch.device = torch.device("cpu")) -> torch.Tensor:
     relative_path = _get_relative_path(path)
-    image = Image.open(relative_path)
+    image = Image.open(relative_path).convert("RGB")
     image = transform(image).unsqueeze(0)
-    return image
+    return image.to(device)
 
 def save_image(tensor: torch.Tensor, path: str):
     relative_path = _get_relative_path(path)
