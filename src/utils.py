@@ -6,10 +6,16 @@ import os
 
 IMAGE_SIZE = 512
 
+# VGG19 is trained on ImageNet dataset, so we need to normalize the images
+# From https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
+cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406])
+cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225])
+
 transform = transforms.Compose([
     transforms.Resize(IMAGE_SIZE),
     transforms.CenterCrop((IMAGE_SIZE, IMAGE_SIZE)),
     transforms.ToTensor(),
+    transforms.Normalize(mean=cnn_normalization_mean, std=cnn_normalization_std)
 ])
 
 def _get_relative_path(path: str) -> str:

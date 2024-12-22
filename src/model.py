@@ -7,20 +7,14 @@ vgg = vgg19(weights=VGG19_Weights.DEFAULT).features
 for param in vgg.parameters():
     param.requires_grad = False
 
+# Use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vgg = vgg.to(device)
-print(torch.cuda.is_available())
+# torch.set_default_device(device)
 
 # Uses VGG19 to extract features from an image
 # Lower layers captures low-level features (edges, textures)
 # Higher layers captures more complex features (shapes, scenes)
-# def get_features(image: torch.Tensor, model: torch.nn.Module) -> torch.Tensor:
-#     features = []
-#     feature = image
-#     for layer in model:
-#         feature = layer(feature)
-#         features.append(feature)
-#     return features
 def get_features(image: torch.Tensor, model: torch.nn.Module, layers=None) -> torch.Tensor:
     if layers is None:
         layers = {
@@ -34,6 +28,7 @@ def get_features(image: torch.Tensor, model: torch.nn.Module, layers=None) -> to
     x = image
     for name, layer in model._modules.items():
         x = layer(x)
+        print(name, layer)
         if name in layers:
             features[layers[name]] = x
     return features
@@ -59,9 +54,9 @@ def style_loss(style_grams, generated_grams):
 def style_transfer(
     content: torch.Tensor, 
     style: torch.Tensor,
-    learning_rate=0.015,
+    learning_rate=0.02,
     content_weight=1, 
-    style_weight=1e9,
+    style_weight=1e6,
     steps=200,
     device=torch.device("cpu")
     ) -> torch.Tensor:
