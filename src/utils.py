@@ -18,6 +18,11 @@ transform = transforms.Compose([
     transforms.Normalize(mean=cnn_normalization_mean, std=cnn_normalization_std)
 ])
 
+def _denormalize(tensor):
+    mean = cnn_normalization_mean.to(tensor.device).view(1, 3, 1, 1)
+    std = cnn_normalization_std.to(tensor.device).view(1, 3, 1, 1)
+    return tensor * std + mean
+
 def _get_relative_path(path: str) -> str:
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), path)
 
@@ -29,14 +34,9 @@ def load_image_as_tensor(path: str, device: torch.device = torch.device("cpu")) 
 
 def save_image(tensor: torch.Tensor, path: str):
     relative_path = _get_relative_path(path)
+    tensor = _denormalize(tensor)
     tensor = tensor.squeeze(0).detach().cpu()
     tensor = tensor.clamp(0, 1)
     tensor = transforms.ToPILImage()(tensor)
     tensor.save(relative_path)
-
-if __name__ == "__main__":
-    # image = load_image("data/content/landscape.jpg")
-    # save_image(image, "data/content/landscape_copy.jpg")
-    pass
-
     
