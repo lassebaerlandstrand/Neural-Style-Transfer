@@ -18,7 +18,7 @@ transform = transforms.Compose([
     transforms.Normalize(mean=cnn_normalization_mean, std=cnn_normalization_std)
 ])
 
-def _denormalize(tensor):
+def _denormalize(tensor: torch.Tensor) -> torch.Tensor:
     mean = cnn_normalization_mean.to(tensor.device).view(1, 3, 1, 1)
     std = cnn_normalization_std.to(tensor.device).view(1, 3, 1, 1)
     return tensor * std + mean
@@ -32,11 +32,10 @@ def load_image_as_tensor(path: str, device: torch.device = torch.device("cpu")) 
     image = transform(image).unsqueeze(0)
     return image.to(device)
 
-def save_image(tensor: torch.Tensor, path: str):
+def save_image(tensor: torch.Tensor, path: str) -> None:
     relative_path = _get_relative_path(path)
     tensor = _denormalize(tensor)
-    tensor = tensor.squeeze(0).detach().cpu()
-    tensor = tensor.clamp(0, 1)
+    tensor = tensor.squeeze(0).clamp(0, 1).detach().cpu()
     tensor = transforms.ToPILImage()(tensor)
     tensor.save(relative_path)
     
