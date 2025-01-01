@@ -48,24 +48,18 @@ class NeuralStyleTransfer:
         self.feature_extractor = VGGFeatureExtractor({**self.style_layers, **self.content_layers})
 
     def gram_matrix(self, tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Computes the Gram matrix for a given tensor
-        """
+        """Computes the Gram matrix for a given tensor"""
         _, n_channels, height, width = tensor.size()
         tensor = tensor.view(n_channels, height * width)
         gram = torch.mm(tensor, tensor.t())
         return gram / (n_channels * height * width)
     
     def compute_content_loss(self, content_feature: torch.Tensor, generated_feature: torch.Tensor) -> torch.Tensor:
-        """
-        Computes the content loss between content and generated features
-        """
+        """Computes the content loss between content and generated features"""
         return torch.nn.MSELoss()(generated_feature, content_feature)
     
     def compute_style_loss(self, style_grams: Dict[str, torch.Tensor], generated_features: Dict[str, torch.Tensor]) -> torch.Tensor:
-        """
-        Computes the style loss between style and generated Gram matrices
-        """
+        """Computes the style loss between style and generated Gram matrices"""
         s_loss = 0
         for layer, style_gram in style_grams.items():
             generated_gram = self.gram_matrix(generated_features[layer])
@@ -73,9 +67,7 @@ class NeuralStyleTransfer:
         return s_loss / len(style_grams)
 
     def compte_total_variation_loss(self, tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Computes the total variation loss for an image tensor
-        """
+        """Computes the total variation loss for an image tensor"""
         return (
             torch.sum(torch.abs(tensor[:, :, :, :-1] - tensor[:, :, :, 1:])) +
             torch.sum(torch.abs(tensor[:, :, :-1, :] - tensor[:, :, 1:, :]))
@@ -92,9 +84,7 @@ class NeuralStyleTransfer:
         total_variation_weight: float = 1e2,
         learning_rate: float = 0.1
     ) -> torch.Tensor:
-        """
-        Performs neural style transfer
-        """
+        """Performs neural style transfer"""
 
         # Extract content and style features
         content_features = self.feature_extractor(content_image)
@@ -152,6 +142,7 @@ class NeuralStyleTransfer:
                 save_image(generated_image, f"data/generated/generated_{step}.jpg")
 
         return generated_image
+
 
 if __name__ == "__main__":
 
