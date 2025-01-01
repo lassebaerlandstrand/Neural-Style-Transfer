@@ -1,125 +1,171 @@
+import time
+from typing import Dict
+
 import torch
 from torchvision.models import vgg19, VGG19_Weights
-import time
 
-# Use VGG19 with default pretrained weights
-vgg = vgg19(weights=VGG19_Weights.DEFAULT).features
-for param in vgg.parameters():
-    param.requires_grad = False
+from utils import load_image_as_tensor, save_image
 
-# Use GPU if available
+# Set device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-vgg = vgg.to(device)
 
-# These layers in the VGG19 architecture were found to be the most suitable for style transfer
-style_layers = {
-    '0': 'conv1_1',
-    '5': 'conv2_1',
-    '10': 'conv3_1',
-    '19': 'conv4_1',
-    '28': 'conv5_1'
-}
-content_layers = {
-    '21': 'conv4_2'
-}
-all_layers = {**style_layers, **content_layers}
+class VGGFeatureExtractor(torch.nn.Module):
+    """
+    Extracts features from specific layers of the VGG19 model
+    """
+    def __init__(self, selected_layers: Dict[str, str]):
+        super().__init__()
+        self.selected_layers = selected_layers
+        self.vgg = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
+        for param in self.vgg.parameters():
+            param.requires_grad = False
+        self.vgg.to(device)
 
-# Uses VGG19 to extract features from an image
-# Lower layers captures low-level features (edges, textures)
-# Higher layers captures more complex features (shapes, scenes)
-def get_features(image: torch.Tensor, model: torch.nn.Module) -> torch.Tensor:
-    features = {}
-    x = image
-    for index, layer in model.named_children():
-        x = layer(x)
-        if index in all_layers:
-            features[all_layers[index]] = x
-    return features
+    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+        features = {}
+        for name, layer in self.vgg._modules.items():
+            x = layer(x)
+            if name in self.selected_layers:
+                features[self.selected_layers[name]] = x
+        return features
+    
+class NeuralStyleTransfer:
+    """
+    Neural style transfer model
+    """
+    def __init__(self):
+        # These layers in the VGG19 architecture were found to be the most suitable for style transfer
+        self.style_layers = {
+            '0': 'conv1_1',
+            '5': 'conv2_1',
+            '10': 'conv3_1',
+            '19': 'conv4_1',
+            '28': 'conv5_1'
+        }
+        self.content_layers = {
+            '21': 'conv4_2'
+        }
+        self.feature_extractor = VGGFeatureExtractor({**self.style_layers, **self.content_layers})
 
-def gram_matrix(tensor: torch.Tensor) -> torch.Tensor:
-    _, n_channels, height, width = tensor.size() # batch_size, n_channels, height, width
-    tensor = tensor.view(n_channels, height * width) # Reshape to 2D tensor, where we flatten the height and width into one dimension
-    gram = torch.mm(tensor, tensor.t())
-    return gram / (n_channels * height * width)
+    def gram_matrix(self, tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Computes the Gram matrix for a given tensor
+        """
+        _, n_channels, height, width = tensor.size()
+        tensor = tensor.view(n_channels, height * width)
+        gram = torch.mm(tensor, tensor.t())
+        return gram / (n_channels * height * width)
+    
+    def compute_content_loss(self, content_feature: torch.Tensor, generated_feature: torch.Tensor) -> torch.Tensor:
+        """
+        Computes the content loss between content and generated features
+        """
+        return torch.nn.MSELoss()(generated_feature, content_feature)
+    
+    def compute_style_loss(self, style_grams: Dict[str, torch.Tensor], generated_features: Dict[str, torch.Tensor]) -> torch.Tensor:
+        """
+        Computes the style loss between style and generated Gram matrices
+        """
+        s_loss = 0
+        for layer, style_gram in style_grams.items():
+            generated_gram = self.gram_matrix(generated_features[layer])
+            s_loss += torch.nn.MSELoss()(generated_gram, style_gram)
+        return s_loss / len(style_grams)
 
-def content_loss(content_feature, generated_feature):
-    return torch.nn.MSELoss(reduction="mean")(generated_feature, content_feature)
+    def compte_total_variation_loss(self, tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Computes the total variation loss for an image tensor
+        """
+        return (
+            torch.sum(torch.abs(tensor[:, :, :, :-1] - tensor[:, :, :, 1:])) +
+            torch.sum(torch.abs(tensor[:, :, :-1, :] - tensor[:, :, 1:, :]))
+        )
 
-def style_loss(style_grams, generated_grams):
-    loss = 0
-    for layer in style_grams.keys():
-        loss += torch.nn.MSELoss(reduction="sum")(generated_grams[layer], style_grams[layer])
-    return loss / len(style_grams)
-
-def total_variation(tensor: torch.Tensor) -> torch.Tensor:
-    return torch.sum(torch.abs(tensor[:, :, :, :-1] - tensor[:, :, :, 1:])) + \
-           torch.sum(torch.abs(tensor[:, :, :-1, :] - tensor[:, :, 1:, :]))
-
-def style_transfer(
-    content: torch.Tensor, 
-    style: torch.Tensor,
-    learning_rate=0.1,
-    content_weight=1, 
-    style_weight=1e7,
-    total_variation_weight=0,
-    steps=200,
-    save_every=-1,
-    device=torch.device("cpu")
+    def perform_neural_style_transfer(
+        self,
+        content_image: torch.Tensor,
+        style_image: torch.Tensor,
+        steps: int = 300,
+        save_every: int = 100,
+        content_weight: float = 1e5,
+        style_weight: float = 1e7,
+        total_variation_weight: float = 1e2,
+        learning_rate: float = 0.1
     ) -> torch.Tensor:
+        """
+        Performs neural style transfer
+        """
 
-    # Extract features
-    content_features = get_features(content, vgg)
-    style_features = get_features(style, vgg)
-    
-    style_layers_name = set(style_layers.values())
+        # Extract content and style features
+        content_features = self.feature_extractor(content_image)
+        style_features = self.feature_extractor(style_image)
 
-    # Compute style gram matrices
-    style_grams = {layer: gram_matrix(style_features[layer]) for layer in style_features if layer in style_layers_name}
-    
-    # Initialize the generated image (start with content image)
-    generated_image = content.clone().requires_grad_(True).to(device)
-    
-    # Optimizer
-    optimizer = torch.optim.Adam([generated_image], lr=learning_rate)
-    
-    # Training loop
-    for step in range(steps):
-        start = time.time()
-        generated_features = get_features(generated_image, vgg)
+        # Compute Gram matrices for style features
+        style_grams = {
+            layer: self.gram_matrix(style_features[layer])
+            for layer in self.style_layers.values()
+        }
 
-        c_loss = content_loss(content_features['conv4_2'], generated_features['conv4_2'])
-        g_grams = {layer: gram_matrix(generated_features[layer]) for layer in style_features if layer in style_layers_name}
-        s_loss = style_loss(style_grams, g_grams)
-        tv_loss = total_variation(generated_image)
-        
-        total_loss = content_weight * c_loss + style_weight * s_loss + total_variation_weight * tv_loss
-        
-        optimizer.zero_grad()
-        total_loss.backward()
-        optimizer.step()
+        # Initialize generated image
+        generated_image = content_image.clone().requires_grad_(True).to(device)
 
-        if step % 1 == 0:
-            print(f"Step {step} | Total Loss: {total_loss.item()} | Content Loss: {content_weight * c_loss} | Style Loss: {style_weight * s_loss} | TV Loss: {total_variation_weight * tv_loss}")
-        print(f"Step {step}, Time: {time.time() - start}\n")
+        # Optimizer
+        optimizer = torch.optim.Adam([generated_image], lr=learning_rate)
 
-        if save_every > 0 and step % save_every == 0:
-            save_image(generated_image, f"data/generated/generated_{step}.jpg")
-            pass
+        for step in range(steps):
+            start_time = time.time()
 
-    return generated_image
+            # Extract features from the generated image
+            generated_features = self.feature_extractor(generated_image)
 
-from utils import load_image_as_tensor
-from utils import save_image
+            # Compute losses
+            content_loss = self.compute_content_loss(content_features['conv4_2'], generated_features['conv4_2'])
+            style_loss = self.compute_style_loss(style_grams, generated_features)
+            total_variation_loss = self.compte_total_variation_loss(generated_image)
+
+            # Combine losses
+            total_loss = (
+                content_weight * content_loss +
+                style_weight * style_loss +
+                total_variation_weight * total_variation_loss
+            )
+
+            # Backpropagation
+            optimizer.zero_grad()
+            total_loss.backward()
+            optimizer.step()
+
+            # Logging
+            if step % 1 == 0:
+                with torch.no_grad():
+                    print(
+                        f"Step {step}/{steps} | "
+                        f"Total Loss: {total_loss.item():.2f} | "
+                        f"Content Loss: {content_weight * content_loss.item():.2f} | "
+                        f"Style Loss: {style_weight * style_loss.item():.2f} | "
+                        f"TV Loss: {total_variation_weight * total_variation_loss.item():.2f} | "
+                        f"Time: {time.time() - start_time:.2f}s"
+                    )
+
+            # Save intermediate results
+            if save_every > 0 and step % save_every == 0:
+                save_image(generated_image, f"data/generated/generated_{step}.jpg")
+
+        return generated_image
 
 if __name__ == "__main__":
+
+    # Load content and style images
     content_image = load_image_as_tensor("data/content/buildings.jpg", device)
     style_image = load_image_as_tensor("data/styles/van_gogh.jpg", device)
 
-    generated_image = style_transfer(
-        content=content_image, 
-        style=style_image,
+    # Perform style transfer
+    nst = NeuralStyleTransfer()
+
+    output_image = nst.perform_neural_style_transfer(
+        content_image=content_image,
+        style_image=style_image,
         steps=3000,
-        device=device,
         save_every=100,
         content_weight=1e7,
         style_weight=1e5,
@@ -127,5 +173,6 @@ if __name__ == "__main__":
         learning_rate=5e0
     )
 
-    save_image(generated_image, "data/generated/buildings_van_gogh.jpg")
-    print("\nImage saved!")
+    # Save final image
+    save_image(output_image, "data/generated/buildings_van_gogh.jpg")
+    print("Style transfer complete! Image saved.")
