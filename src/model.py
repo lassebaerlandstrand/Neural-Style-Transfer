@@ -11,32 +11,29 @@ for param in vgg.parameters():
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vgg = vgg.to(device)
 
+# These layers in the VGG19 architecture were found to be the most suitable for style transfer
 style_layers = {
     '0': 'conv1_1',
     '5': 'conv2_1',
     '10': 'conv3_1',
-    # '19': 'conv4_1',
+    '19': 'conv4_1',
     '28': 'conv5_1'
 }
-
 content_layers = {
     '21': 'conv4_2'
 }
-
 all_layers = {**style_layers, **content_layers}
 
 # Uses VGG19 to extract features from an image
 # Lower layers captures low-level features (edges, textures)
 # Higher layers captures more complex features (shapes, scenes)
-def get_features(image: torch.Tensor, model: torch.nn.Module, layers=None) -> torch.Tensor:
-    if layers is None:
-        layers = all_layers
+def get_features(image: torch.Tensor, model: torch.nn.Module) -> torch.Tensor:
     features = {}
     x = image
     for index, layer in model.named_children():
         x = layer(x)
-        if index in layers:
-            features[layers[index]] = x
+        if index in all_layers:
+            features[all_layers[index]] = x
     return features
 
 def gram_matrix(tensor: torch.Tensor) -> torch.Tensor:
@@ -48,7 +45,6 @@ def gram_matrix(tensor: torch.Tensor) -> torch.Tensor:
 def content_loss(content_feature, generated_feature):
     return torch.nn.MSELoss(reduction="mean")(generated_feature, content_feature)
 
-# Uses mean squared error loss
 def style_loss(style_grams, generated_grams):
     loss = 0
     for layer in style_grams.keys():
@@ -102,7 +98,7 @@ def style_transfer(
         optimizer.step()
 
         if step % 1 == 0:
-            print(f"Step {step}, Total Loss: {total_loss.item()}")
+            print(f"Step {step} | Total Loss: {total_loss.item()} | Content Loss: {content_weight * c_loss} | Style Loss: {style_weight * s_loss} | TV Loss: {total_variation_weight * tv_loss}")
         print(f"Step {step}, Time: {time.time() - start}\n")
 
     return generated_image
@@ -117,8 +113,12 @@ if __name__ == "__main__":
     generated_image = style_transfer(
         content=content_image, 
         style=style_image,
-        steps=500,
-        device=device
+        steps=3000,
+        device=device,
+        content_weight=1e7,
+        style_weight=1e5,
+        total_variation_weight=1e2,
+        learning_rate=5e0
     )
 
     save_image(generated_image, "data/generated/buildings_van_gogh.jpg")
