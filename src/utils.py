@@ -34,7 +34,7 @@ def load_image_as_tensor(path: str, device: torch.device = torch.device("cpu")) 
     """Load an image and return it as a normalized tensor."""
     relative_path = _get_relative_path(path)
     image = Image.open(relative_path).convert("RGB")
-    image = transform(image).unsqueeze(0)  # Add batch dimension
+    image = transform(image).unsqueeze(0)
     return image.to(device)
 
 def save_image(tensor: torch.Tensor, path: str) -> str:

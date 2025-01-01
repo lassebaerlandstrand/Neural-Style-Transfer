@@ -63,6 +63,7 @@ def style_transfer(
     style_weight=1e7,
     total_variation_weight=0,
     steps=200,
+    save_every=-1,
     device=torch.device("cpu")
     ) -> torch.Tensor:
 
@@ -101,6 +102,10 @@ def style_transfer(
             print(f"Step {step} | Total Loss: {total_loss.item()} | Content Loss: {content_weight * c_loss} | Style Loss: {style_weight * s_loss} | TV Loss: {total_variation_weight * tv_loss}")
         print(f"Step {step}, Time: {time.time() - start}\n")
 
+        if save_every > 0 and step % save_every == 0:
+            save_image(generated_image, f"data/generated/generated_{step}.jpg")
+            pass
+
     return generated_image
 
 from utils import load_image_as_tensor
@@ -115,6 +120,7 @@ if __name__ == "__main__":
         style=style_image,
         steps=3000,
         device=device,
+        save_every=100,
         content_weight=1e7,
         style_weight=1e5,
         total_variation_weight=1e2,
