@@ -6,7 +6,7 @@ from torchvision.models import vgg19, VGG19_Weights
 
 from utils import load_image_as_tensor, save_image
 
-# Set device
+# Use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class VGGFeatureExtractor(torch.nn.Module):
@@ -56,15 +56,15 @@ class NeuralStyleTransfer:
     
     def compute_content_loss(self, content_feature: torch.Tensor, generated_feature: torch.Tensor) -> torch.Tensor:
         """Computes the content loss between content and generated features"""
-        return torch.nn.MSELoss()(generated_feature, content_feature)
+        return torch.nn.MSELoss(reduction="mean")(generated_feature, content_feature)
     
     def compute_style_loss(self, style_grams: Dict[str, torch.Tensor], generated_features: Dict[str, torch.Tensor]) -> torch.Tensor:
         """Computes the style loss between style and generated Gram matrices"""
-        s_loss = 0
+        style_loss = 0
         for layer, style_gram in style_grams.items():
             generated_gram = self.gram_matrix(generated_features[layer])
-            s_loss += torch.nn.MSELoss()(generated_gram, style_gram)
-        return s_loss / len(style_grams)
+            style_loss += torch.nn.MSELoss(reduction="sum")(generated_gram, style_gram)
+        return style_loss / len(style_grams)
 
     def compte_total_variation_loss(self, tensor: torch.Tensor) -> torch.Tensor:
         """Computes the total variation loss for an image tensor"""
