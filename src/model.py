@@ -49,8 +49,8 @@ class NeuralStyleTransfer:
 
     def gram_matrix(self, tensor: torch.Tensor) -> torch.Tensor:
         """Computes the Gram matrix for a given tensor"""
-        _, n_channels, height, width = tensor.size()
-        tensor = tensor.view(n_channels, height * width)
+        _, n_channels, height, width = tensor.size() # batch_size, n_channels, height, width
+        tensor = tensor.view(n_channels, height * width) # Reshape to 2D tensor, where we flatten the height and width into one dimension
         gram = torch.mm(tensor, tensor.t())
         return gram / (n_channels * height * width)
     
@@ -82,7 +82,8 @@ class NeuralStyleTransfer:
         content_weight: float = 1e5,
         style_weight: float = 1e7,
         total_variation_weight: float = 1e2,
-        learning_rate: float = 0.1
+        learning_rate: float = 0.1,
+        logging: bool = False
     ) -> torch.Tensor:
         """Performs neural style transfer"""
 
@@ -126,7 +127,7 @@ class NeuralStyleTransfer:
             optimizer.step()
 
             # Logging
-            if step % 1 == 0:
+            if logging:
                 with torch.no_grad():
                     print(
                         f"Step {step}/{steps} | "
@@ -161,7 +162,8 @@ if __name__ == "__main__":
         content_weight=1e7,
         style_weight=1e5,
         total_variation_weight=1e2,
-        learning_rate=5e0
+        learning_rate=5e0,
+        logging=True
     )
 
     # Save final image
