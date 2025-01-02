@@ -1,6 +1,6 @@
 import torch
 import torchvision.transforms as transforms
-from torchvision.models import vgg19
+import matplotlib.pyplot as plt
 from PIL import Image
 import os
 
@@ -21,13 +21,13 @@ transform = transforms.Compose([
 ])
 
 def _denormalize(tensor: torch.Tensor) -> torch.Tensor:
-    """Revert the normalization process to restore pixel values."""
+    """Revert the normalization process to restore pixel values"""
     mean = IMAGENET_MEAN_255.to(tensor.device).view(1, 3, 1, 1)
     std = IMAGENET_STD_NEUTRAL.to(tensor.device).view(1, 3, 1, 1)
     return tensor * std + mean
 
 def _get_relative_path(path: str) -> str:
-    """Get the relative path of a file from the project root."""
+    """Get the relative path of a file from the project root"""
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), path)
 
 def load_image_as_tensor(path: str, device: torch.device = torch.device("cpu")) -> torch.Tensor:
@@ -38,7 +38,7 @@ def load_image_as_tensor(path: str, device: torch.device = torch.device("cpu")) 
     return image.to(device)
 
 def save_image(tensor: torch.Tensor, path: str) -> str:
-    """Save a tensor as an image file. Returns the path to the saved image."""
+    """Save a tensor as an image file. Returns the path to the saved image"""
     relative_path = _get_relative_path(path)
     tensor = _denormalize(tensor)
     tensor = tensor.squeeze(0).clamp(0, 255).detach().cpu()
@@ -46,3 +46,13 @@ def save_image(tensor: torch.Tensor, path: str) -> str:
     image = Image.fromarray(tensor)
     image.save(relative_path)
     return relative_path
+
+def display_image_in_notebook(tensor: torch.Tensor, title: str = "") -> None:
+    """Display an image tensor in a Jupyter notebook"""
+    tensor = _denormalize(tensor)
+    tensor = tensor.squeeze(0).clamp(0, 255).detach().cpu()
+    tensor = tensor.permute(1, 2, 0).numpy().astype("uint8")
+    plt.imshow(tensor)
+    plt.title(title)
+    plt.axis("off")
+    plt.show()
