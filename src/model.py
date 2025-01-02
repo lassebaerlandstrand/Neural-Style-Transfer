@@ -1,5 +1,6 @@
 import time
 from typing import Dict
+import logging
 
 import torch
 from torchvision.models import vgg19, VGG19_Weights
@@ -8,6 +9,9 @@ from utils import load_image_as_tensor, save_image
 
 # Use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 class VGGFeatureExtractor(torch.nn.Module):
     """
@@ -66,7 +70,7 @@ class NeuralStyleTransfer:
             style_loss += torch.nn.MSELoss(reduction="sum")(generated_gram, style_gram)
         return style_loss / len(style_grams)
 
-    def compte_total_variation_loss(self, tensor: torch.Tensor) -> torch.Tensor:
+    def compute_total_variation_loss(self, tensor: torch.Tensor) -> torch.Tensor:
         """Computes the total variation loss for an image tensor"""
         return (
             torch.sum(torch.abs(tensor[:, :, :, :-1] - tensor[:, :, :, 1:])) +
@@ -77,13 +81,13 @@ class NeuralStyleTransfer:
         self,
         content_image: torch.Tensor,
         style_image: torch.Tensor,
-        steps: int = 300,
-        save_every: int = 100,
+        steps: int = 3000,
+        save_every: int = -1, # Set to -1 to disable
         content_weight: float = 1e5,
         style_weight: float = 1e7,
         total_variation_weight: float = 1e2,
         learning_rate: float = 0.1,
-        logging: bool = False
+        logging_enabled: bool = False
     ) -> torch.Tensor:
         """Performs neural style transfer"""
 
@@ -112,7 +116,7 @@ class NeuralStyleTransfer:
             # Compute losses
             content_loss = self.compute_content_loss(content_features['conv4_2'], generated_features['conv4_2'])
             style_loss = self.compute_style_loss(style_grams, generated_features)
-            total_variation_loss = self.compte_total_variation_loss(generated_image)
+            total_variation_loss = self.compute_total_variation_loss(generated_image)
 
             # Combine losses
             total_loss = (
@@ -127,16 +131,15 @@ class NeuralStyleTransfer:
             optimizer.step()
 
             # Logging
-            if logging:
-                with torch.no_grad():
-                    print(
-                        f"Step {step}/{steps} | "
-                        f"Total Loss: {total_loss.item():.2f} | "
-                        f"Content Loss: {content_weight * content_loss.item():.2f} | "
-                        f"Style Loss: {style_weight * style_loss.item():.2f} | "
-                        f"TV Loss: {total_variation_weight * total_variation_loss.item():.2f} | "
-                        f"Time: {time.time() - start_time:.2f}s"
-                    )
+            if logging_enabled:
+                logging.info(
+                    f"Step {step}/{steps} | "
+                    f"Total Loss: {total_loss.item():.2f} | "
+                    f"Content Loss: {content_weight * content_loss.item():.2f} | "
+                    f"Style Loss: {style_weight * style_loss.item():.2f} | "
+                    f"TV Loss: {total_variation_weight * total_variation_loss.item():.2f} | "
+                    f"Time: {time.time() - start_time:.2f}s"
+                )
 
             # Save intermediate results
             if save_every > 0 and step % save_every == 0:
@@ -163,7 +166,7 @@ if __name__ == "__main__":
         style_weight=1e5,
         total_variation_weight=1e2,
         learning_rate=5e0,
-        logging=True
+        logging_enabled=True
     )
 
     # Save final image
