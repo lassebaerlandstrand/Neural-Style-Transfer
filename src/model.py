@@ -7,9 +7,6 @@ from torchvision.models import vgg19, VGG19_Weights
 
 from utils import load_image_as_tensor, save_image
 
-# Use GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -17,7 +14,7 @@ class VGGFeatureExtractor(torch.nn.Module):
     """
     Extracts features from specific layers of the VGG19 model
     """
-    def __init__(self, selected_layers: Dict[str, str]):
+    def __init__(self, selected_layers: Dict[str, str], device: torch.device = torch.device("cpu")):
         super().__init__()
         self.selected_layers = selected_layers
         self.vgg = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
@@ -37,7 +34,9 @@ class NeuralStyleTransfer:
     """
     Neural style transfer model
     """
-    def __init__(self):
+    def __init__(self, device: torch.device = torch.device("cpu")):
+        self.device = device
+
         # These layers in the VGG19 architecture were found to be the most suitable for style transfer
         self.style_layers = {
             '0': 'conv1_1',
@@ -49,7 +48,7 @@ class NeuralStyleTransfer:
         self.content_layers = {
             '21': 'conv4_2'
         }
-        self.feature_extractor = VGGFeatureExtractor({**self.style_layers, **self.content_layers})
+        self.feature_extractor = VGGFeatureExtractor({**self.style_layers, **self.content_layers}, device)
 
     def gram_matrix(self, tensor: torch.Tensor) -> torch.Tensor:
         """Computes the Gram matrix for a given tensor"""
@@ -102,7 +101,7 @@ class NeuralStyleTransfer:
         }
 
         # Initialize generated image
-        generated_image = content_image.clone().requires_grad_(True).to(device)
+        generated_image = content_image.clone().requires_grad_(True).to(self.device)
 
         # Optimizer
         optimizer = torch.optim.Adam([generated_image], lr=learning_rate)
@@ -149,13 +148,15 @@ class NeuralStyleTransfer:
 
 
 if __name__ == "__main__":
+    # Set device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load content and style images
     content_image = load_image_as_tensor("data/content/buildings.jpg", device)
     style_image = load_image_as_tensor("data/styles/van_gogh.jpg", device)
 
     # Perform style transfer
-    nst = NeuralStyleTransfer()
+    nst = NeuralStyleTransfer(device)
 
     output_image = nst.perform_neural_style_transfer(
         content_image=content_image,
