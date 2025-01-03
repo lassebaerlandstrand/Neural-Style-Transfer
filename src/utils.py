@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import os
 
-IMAGE_SIZE = 512
+LIMIT_IMAGE_SIZE = 512
 
 # VGG19 is trained on ImageNet dataset. 
 # Therefore we normalize the images with the mean and standard deviation of the ImageNet dataset.
@@ -13,8 +13,7 @@ IMAGENET_STD_NEUTRAL = torch.tensor([1.0, 1.0, 1.0])
 
 # Using [0, 255] for pixel values provided much better results than [0, 1]
 transform = transforms.Compose([
-    transforms.Resize(IMAGE_SIZE),
-    transforms.CenterCrop((IMAGE_SIZE, IMAGE_SIZE)),
+    transforms.Resize(LIMIT_IMAGE_SIZE), # Resize the image to a maximum of 512 pixels on the longest side, this preserves aspect ratio and reduces memory usage
     transforms.ToTensor(),
     transforms.Lambda(lambda x: x * 255),
     transforms.Normalize(mean=IMAGENET_MEAN_255, std=IMAGENET_STD_NEUTRAL)
