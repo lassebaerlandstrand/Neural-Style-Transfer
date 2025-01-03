@@ -81,7 +81,7 @@ class NeuralStyleTransfer:
         content_image: torch.Tensor,
         style_image: torch.Tensor,
         steps: int = 3000,
-        save_every: int = -1, # Set to -1 to disable
+        save_intermediate_every: int = -1, # Set to -1 to disable
         content_weight: float = 1e5,
         style_weight: float = 1e7,
         total_variation_weight: float = 1e2,
@@ -141,8 +141,8 @@ class NeuralStyleTransfer:
                 )
 
             # Save intermediate results
-            if save_every > 0 and step % save_every == 0:
-                save_image(generated_image, f"data/generated/generated_{step}.jpg")
+            if save_intermediate_every > 0 and step % save_intermediate_every == 0:
+                save_image(generated_image, f"data/generated/intermediate_results/generated_{step}.jpg")
 
         return generated_image
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         content_image=content_image,
         style_image=style_image,
         steps=3000,
-        save_every=100,
+        save_intermediate_every=100,
         content_weight=1e7,
         style_weight=1e5,
         total_variation_weight=1e2,
