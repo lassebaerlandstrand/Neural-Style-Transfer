@@ -132,7 +132,7 @@ class NeuralStyleTransfer:
             # Logging
             if logging_enabled:
                 logging.info(
-                    f"Step {step}/{steps} | "
+                    f"Step {step + 1}/{steps} | "
                     f"Total Loss: {total_loss.item():.2f} | "
                     f"Content Loss: {content_weight * content_loss.item():.2f} | "
                     f"Style Loss: {style_weight * style_loss.item():.2f} | "
