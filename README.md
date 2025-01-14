@@ -32,7 +32,74 @@ The NST process starts with an initialized image (which in this repository is th
 ## Results
 
 Below are some examples of Neural Style Transfer results, showcasing the fusion of various content and style images:
-...
+
+<table>
+  <thead>
+    <tr>
+      <th>Content Image</th>
+      <th>Style Image</th>
+      <th>Result Image</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="data/content/buildings.jpg" width="300"></td>
+      <td><img src="data/styles/starry_night.jpg" width="300"></td>
+      <td><img src="data/examples/buildings_starry_night.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/batad_rice_terraces.jpg" width="300"></td>
+      <td><img src="data/styles/scream.jpg" width="300"></td>
+      <td><img src="data/examples/batad_rice_terraces_scream.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/batad_rice_terraces.jpg" width="300"></td>
+      <td><img src="data/styles/watercolor.jpg" width="300"></td>
+      <td><img src="data/examples/batad_rice_terraces_watercolor.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/city.jpg" width="300"></td>
+      <td><img src="data/styles/wheat_fields.jpg" width="300"></td>
+      <td><img src="data/examples/city_wheat_fields.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/devils_bridge.jpg" width="300"></td>
+      <td><img src="data/styles/the_night_cafe.jpg" width="300"></td>
+      <td><img src="data/examples/devils_bridge_the_night_cafe.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/earthrise.jpg" width="300"></td>
+      <td><img src="data/styles/scream.jpg" width="300"></td>
+      <td><img src="data/examples/earthrise_scream.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/golden_gate_driving.jpg" width="300"></td>
+      <td><img src="data/styles/edtaonisl.jpg" width="300"></td>
+      <td><img src="data/examples/golden_gate_driving_edtaonisl.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/golden_gate.jpg" width="300"></td>
+      <td><img src="data/styles/scream.jpg" width="300"></td>
+      <td><img src="data/examples/golden_gate_scream.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/mona_lisa.jpg" width="300"></td>
+      <td><img src="data/styles/edtaonisl.jpg" width="300"></td>
+      <td><img src="data/examples/mona_lisa_edtaonisl.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/taj_mahal.jpg" width="300"></td>
+      <td><img src="data/styles/starry_night.jpg" width="300"></td>
+      <td><img src="data/examples/taj_mahal_starry_night.jpg" width="300"></td>
+    </tr>
+    <tr>
+      <td><img src="data/content/taj_mahal.jpg" width="300"></td>
+      <td><img src="data/styles/wheat_fields.jpg" width="300"></td>
+      <td><img src="data/examples/taj_mahal_wheat_fields.jpg" width="300"></td>
+    </tr>
+  </tbody>
+</table>
+
 
 You can find more examples in the [`examples`](/data/examples/) folder.
 
