@@ -103,6 +103,10 @@ class NeuralStyleTransfer:
         # Initialize generated image
         generated_image = content_image.clone().requires_grad_(True).to(self.device)
 
+        # The optimizer may jump to another (less optimal) minima. We save the best minima instead
+        min_loss = float("inf")
+        min_image = generated_image
+
         # Optimizer
         optimizer = torch.optim.Adam([generated_image], lr=learning_rate)
 
@@ -129,6 +133,11 @@ class NeuralStyleTransfer:
             total_loss.backward()
             optimizer.step()
 
+            # Save current image if it's the best one seen so far
+            if total_loss < min_loss:
+                min_image = generated_image
+                min_loss = total_loss
+
             # Logging
             if logging_enabled:
                 logging.info(
@@ -144,7 +153,7 @@ class NeuralStyleTransfer:
             if save_intermediate_every > 0 and step % save_intermediate_every == 0:
                 save_image(generated_image, f"data/generated/intermediate_results/generated_{step}.jpg")
 
-        return generated_image
+        return min_image
 
 
 if __name__ == "__main__":
