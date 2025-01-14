@@ -57,7 +57,7 @@ uv run src/main.py
 4. The generated image will be saved in the [`generated`](/data/generated/) folder.
 
 ## Acknowledgements and References
-- The images used in this project are sourced from Wikipedia.
+- The images used in this project are sourced from Wikipedia. Some images are color adjusted in GIMP to have more clear colors.
 - The implementation is inspired by the seminal paper ["A Neural Algorithm of Artistic Style" by Gatys et al. (2015)](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Gatys_Image_Style_Transfer_CVPR_2016_paper.pdf).
 - Video series by Aleksa Gordic on Neural Style Transfer on [Youtube](https://www.youtube.com/watch?v=S78LQebx6jo&list=PLBoQnSflObcmbfshq9oNs41vODgXG-608).
 - Pre-trained VGG-19 weights are used, available via the PyTorch model zoo.
