@@ -48,6 +48,11 @@ Below are some examples of Neural Style Transfer results, showcasing the fusion 
       <td><img src="data/examples/buildings_starry_night.jpg" width="300"></td>
     </tr>
     <tr>
+      <td><img src="data/content/city.jpg" width="300"></td>
+      <td><img src="data/styles/wheat_fields.jpg" width="300"></td>
+      <td><img src="data/examples/city_wheat_fields.jpg" width="300"></td>
+    </tr>
+    <tr>
       <td><img src="data/content/batad_rice_terraces.jpg" width="300"></td>
       <td><img src="data/styles/scream.jpg" width="300"></td>
       <td><img src="data/examples/batad_rice_terraces_scream.jpg" width="300"></td>
@@ -56,11 +61,6 @@ Below are some examples of Neural Style Transfer results, showcasing the fusion 
       <td><img src="data/content/batad_rice_terraces.jpg" width="300"></td>
       <td><img src="data/styles/watercolor.jpg" width="300"></td>
       <td><img src="data/examples/batad_rice_terraces_watercolor.jpg" width="300"></td>
-    </tr>
-    <tr>
-      <td><img src="data/content/city.jpg" width="300"></td>
-      <td><img src="data/styles/wheat_fields.jpg" width="300"></td>
-      <td><img src="data/examples/city_wheat_fields.jpg" width="300"></td>
     </tr>
     <tr>
       <td><img src="data/content/devils_bridge.jpg" width="300"></td>
@@ -90,7 +90,7 @@ Below are some examples of Neural Style Transfer results, showcasing the fusion 
     <tr>
       <td><img src="data/content/taj_mahal.jpg" width="300"></td>
       <td><img src="data/styles/starry_night.jpg" width="300"></td>
-      <td><img src="data/examples/taj_mahal_starry_night.jpg" width="300"></td>
+      <td><img src="data/examples/taj_mahal_starry_night_smaller.jpg" width="300"></td>
     </tr>
     <tr>
       <td><img src="data/content/taj_mahal.jpg" width="300"></td>
