@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import os
 
-LIMIT_IMAGE_SIZE = 512
+LIMIT_IMAGE_SIZE = 400
 
 # VGG19 is trained on ImageNet dataset. 
 # Therefore we normalize the images with the mean and standard deviation of the ImageNet dataset.
