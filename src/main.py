@@ -4,8 +4,8 @@ from model import NeuralStyleTransfer
 
 def main():
     # Specify content and style image names
-    content_image_name = "buildings.jpg"
-    style_image_name = "van_gogh.jpg"
+    content_image_name = "batad_rice_terraces.jpg"
+    style_image_name = "scream.jpg"
 
     # Set device
     print("Setting device...")
@@ -23,10 +23,10 @@ def main():
         content_image=content_image,
         style_image=style_image,
         steps=3000,
-        save_intermediate_every=-1, # Set this to a positive value to save intermediate results within data/generated/intermediate_results/
-        content_weight=1e7, # Higher content weight for better content preservation
+        save_intermediate_every=1000, # Set this to a positive value to save intermediate results within data/generated/intermediate_results/ or -1 to disable saving
+        content_weight=1e5, # Higher content weight for better content preservation
         style_weight=1e5, # Higher style weight for better style transfer
-        total_variation_weight=1e2, # Higher total variation weight for less noise/smoother results
+        total_variation_weight=1e1, # Higher total variation weight for less noise/smoother results
         learning_rate=5e0,
         logging_enabled=True
     )
