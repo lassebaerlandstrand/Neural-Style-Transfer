@@ -192,8 +192,8 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load content and style images
-    content_image = load_image_as_tensor("data/content/carina_nebula.jpg", device)
-    style_image = load_image_as_tensor("data/styles/wheat_field_with_cypresses.jpg", device)
+    content_image = load_image_as_tensor("data/content/buildings.jpg", device)
+    style_image = load_image_as_tensor("data/styles/van_gogh.jpg", device)
 
     # Perform style transfer
     nst = NeuralStyleTransfer(device)
@@ -202,15 +202,15 @@ if __name__ == "__main__":
         content_image=content_image,
         style_image=style_image,
         steps=3000,
-        save_every=5,
+        save_every=10,
         content_weight=1e5,
-        style_weight=3e4,
-        total_variation_weight=1e0,
-        learning_rate=5e0,
+        style_weight=1e5,
+        total_variation_weight=0,
+        learning_rate=1e0,
         optimizer_type=OptimizerType.LBFGS,
         logging_enabled=True
     )
 
     # Save final image
-    save_image(output_image, "data/generated/fireworks_watercolor.jpg")
+    save_image(output_image, "data/generated/test.jpg")
     print("Style transfer complete! Image saved.")
