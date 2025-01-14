@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     # Load content and style images
     content_image = load_image_as_tensor("data/content/buildings.jpg", device)
-    style_image = load_image_as_tensor("data/styles/van_gogh.jpg", device)
+    style_image = load_image_as_tensor("data/styles/starry_night.jpg", device)
 
     # Perform style transfer
     nst = NeuralStyleTransfer(device)
@@ -180,5 +180,5 @@ if __name__ == "__main__":
     )
 
     # Save final image
-    save_image(output_image, "data/generated/buildings_van_gogh.jpg")
+    save_image(output_image, "data/generated/buildings_starry_night.jpg")
     print("Style transfer complete! Image saved.")
