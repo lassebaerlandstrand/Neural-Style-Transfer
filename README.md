@@ -83,6 +83,11 @@ Below are some examples of Neural Style Transfer results, showcasing the fusion 
       <td><img src="data/examples/golden_gate_scream.jpg" width="300"></td>
     </tr>
     <tr>
+      <td><img src="data/content/golden_gate.jpg" width="300"></td>
+      <td><img src="data/styles/pencil_sketch.jpg" width="300"></td>
+      <td><img src="data/examples/golden_gate_pencil_sketch.jpg" width="300"></td>
+    </tr>
+    <tr>
       <td><img src="data/content/mona_lisa.jpg" width="300"></td>
       <td><img src="data/styles/edtaonisl.jpg" width="300"></td>
       <td><img src="data/examples/mona_lisa_edtaonisl.jpg" width="300"></td>
