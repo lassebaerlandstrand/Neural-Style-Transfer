@@ -24,7 +24,7 @@ def main():
         style_image=style_image,
         steps=3000,
         save_intermediate_every=1000, # Set this to a positive value to save intermediate results within data/generated/intermediate_results/ or -1 to disable saving
-        content_weight=1e5, # Higher content weight for better content preservation
+        content_weight=1e6, # Higher content weight for better content preservation
         style_weight=1e5, # Higher style weight for better style transfer
         total_variation_weight=1e1, # Higher total variation weight for less noise/smoother results
         learning_rate=5e0,
